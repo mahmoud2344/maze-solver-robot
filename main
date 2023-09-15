@@ -1,0 +1,157 @@
+int motor_lA = 3;//h bridge in1 into pin 3 arduino
+int motor_lB = 4;// h bridge in2 into pin 4 arduino
+int motor_enableA = 10;
+
+int motor_rA = 5;//h bridge in3 into pin 5 arduino
+int motor_rB = 6;//h bridge in4 into pin 6 arduino
+int motor_enableB = 11;
+
+int trigger_front = A0;// front sensor trig into pin A0 arduino
+int echo_front = A1;// front sensor echo into into pin A1 arduino
+
+int trigger_left = A2;
+int echo_left = A3;
+
+int trigger_right = A4;
+int echo_right = A5;
+
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(motor_lA,OUTPUT);   //left motors forward
+  pinMode(motor_lB,OUTPUT);   //left motors reverse
+  pinMode(motor_enableA, OUTPUT);
+
+  pinMode(motor_rA,OUTPUT);   //right motors forward
+  pinMode(motor_rB,OUTPUT);   //rignt motors reverse
+  pinMode(motor_enableB, OUTPUT);
+
+  pinMode(trigger_front,OUTPUT);
+  pinMode(echo_front,INPUT);
+
+  pinMode(trigger_left,OUTPUT);
+  pinMode(echo_left,INPUT);
+
+  pinMode(trigger_right,OUTPUT);
+  pinMode(echo_right,INPUT);
+  
+  analogWrite(motor_enableA, 180);//motor a speed
+  analogWrite(motor_enableB, 180);//motor b speed
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  Serial.begin(9600);
+  long duration_front, distance_front, duration_left, distance_left, duration_right, distance_right;
+    
+  //for Calculating distance
+  
+  digitalWrite(trigger_front, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger_front, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger_front, LOW);
+  duration_front = pulseIn(echo_front, HIGH);
+  distance_front= duration_front/29/2; // The speed of sound is 340 m/s or 29 microseconds per centimeter.
+  //The ping travels out and back, so to find the distance of the object we take half of the distance travelled.
+
+  digitalWrite(trigger_left, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger_left, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger_left, LOW);
+  duration_left = pulseIn(echo_left, HIGH);
+  distance_left= duration_left/29/2;
+
+  digitalWrite(trigger_right, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger_right, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger_right, LOW);
+  duration_right = pulseIn(echo_right, HIGH);
+  distance_right= duration_right/29/2;
+
+  Serial.print("front = ");
+  Serial.println(distance_front);
+  Serial.print("Left = ");
+  Serial.println(distance_left);
+  Serial.print("Right = ");
+  Serial.println(distance_right);  
+  delay(30);
+
+
+  if (distance_front >20){
+
+    forward();
+    
+    if(distance_left > 10&& distance_left<20){
+      forward();
+    }
+    if(distance_left >=20){
+       left();
+       delay(30);
+       forward();
+    }
+    if(distance_left<10 && distance_left>0){
+      right();
+      delay(30);
+      forward();
+    }
+ } 
+  
+  if(distance_front<=20&& distance_right > 20){
+    Stop();
+    delay(1000);
+    right();
+    delay(900); //this delay is for turning with 90* angle
+    
+  }
+
+  if(distance_front<=20 && distance_right<20){
+    Stop();
+    delay(1000);
+    right();
+    delay(1800); // this delay is for turning with 180* angle
+   
+  }
+  
+  
+}
+
+void forward()
+{
+  digitalWrite(motor_lA,1);
+  digitalWrite(motor_lB,0);
+  digitalWrite(motor_rA,1);
+  digitalWrite(motor_rB,0);
+  delay(1000); 
+}
+
+
+void right(){
+  digitalWrite(motor_lA,1);
+  digitalWrite(motor_lB,0);
+  digitalWrite(motor_rA,0);
+  digitalWrite(motor_rB,1);
+ delay(200); //left motors front and right motors backward (to turn right)
+}
+
+
+void left(){
+  digitalWrite(motor_lA,0);
+  digitalWrite(motor_lB,1);
+  digitalWrite(motor_rA,1);
+  digitalWrite(motor_rB,0);
+  delay(200); //left motors backward and right motors front (to turn left)
+}
+
+
+
+void Stop(){
+  digitalWrite(motor_lA,0);
+  digitalWrite(motor_lB,0);
+  digitalWrite(motor_rA,0);
+  digitalWrite(motor_rB,0);
+  delay(400); // all motors are off
+}
