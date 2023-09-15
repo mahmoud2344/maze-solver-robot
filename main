@@ -80,7 +80,7 @@ void loop() {
   Serial.println(distance_right);  
   delay(30);
 
-
+  //you can always change the delay values in the code below to match the speed with the angle, so you might need to change the values based on your motors speed 
   if (distance_front >20){
 
     forward();
